@@ -1,31 +1,13 @@
-FROM centos:centos7
+FROM debian:jessie
 MAINTAINER Andreas Krüger
+ENV DEBIAN_FRONTEND noninteractive
 
-# Deps from: https://github.com/sipcapture/homer/blob/master/scripts/extra/homer_installer.sh
-RUN yum install -y autoconf automake bzip2 cpio curl curl-devel curl-devel \
-                   expat-devel fileutils make gcc gcc-c++ gettext-devel gnutls-devel openssl \
-                   openssl-devel openssl-devel mod_ssl perl patch unzip wget zip zlib zlib-devel \
-                   bison flex mysql mysql-devel pcre-devel libxml2-devel sox httpd php php-gd php-mysql php-json
+RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xfb40d3e6508ea4c8
+RUN echo "deb http://deb.kamailio.org/kamailio jessie main" >> etc/apt/sources.list
+RUN echo "deb-src http://deb.kamailio.org/kamailio jessie main" >> etc/apt/sources.list
+RUN apt-get update -qq
+RUN apt-get install --no-install-recommends --no-install-suggests -yqq kamailio rsyslog inotify-tools kamailio-outbound-modules kamailio-sctp-modules kamailio-tls-modules kamailio-websocket-modules kamailio-utils-modules kamailio-mysql-modules
 
-# Clone the source
-RUN mkdir -p /usr/src/
-WORKDIR /usr/src/
-RUN git clone -b 4.2 --depth 1 https://github.com/kamailio/kamailio.git kamailio
-
-WORKDIR /usr/src/kamailio
-RUN git checkout 4.2
-ENV REAL_PATH /usr/local/kamailio
-
-# Get ready for a build.
-RUN make PREFIX=$REAL_PATH FLAVOUR=kamailio include_modules="db_mysql sipcapture pv textops rtimer xlog sqlops htable sl siputils" cfg
-RUN make all && make install
-RUN mv $REAL_PATH/etc/kamailio/kamailio.cfg $REAL_PATH/etc/kamailio/kamailio.cfg.old
-RUN cp modules/sipcapture/examples/kamailio.cfg $REAL_PATH/etc/kamailio/kamailio.cfg
-
-WORKDIR /
-
-# Get the configs in there
-RUN mkdir -p /etc/kamailio
 COPY kamailio.cfg /etc/kamailio/kamailio.cfg
 COPY run.sh /run.sh
 ENTRYPOINT [ "/run.sh" ]

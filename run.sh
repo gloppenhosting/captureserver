@@ -66,7 +66,7 @@ perl -p -i -e "s/\{\{ DB_HOST \}\}/$DB_HOST/" $PATH_KAMAILIO_CFG
 perl -p -i -e "s/\{\{ DB_USER \}\}/$DB_USER/" $PATH_KAMAILIO_CFG
 
 # Make an alias, kinda.
-kamailio=/usr/local/kamailio/sbin/kamailio
+kamailio=$(which kamailio)
 
 # Test the syntax.
 $kamailio -f $PATH_KAMAILIO_CFG -c
